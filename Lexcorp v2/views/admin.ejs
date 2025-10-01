@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Administración</title>
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+  <header>
+    <h1>Panel de Administración - Servicios</h1>
+    <nav>
+      <a href="/inicio">Inicio</a> |
+      <a href="/logout">Cerrar Sesión</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h2>Agregar un nuevo servicio</h2>
+      <form method="POST" action="/agregar_servicio">
+        <label>Nombre:</label>
+        <input type="text" name="nombre" required><br>
+        <label>Descripción:</label>
+        <textarea name="descripcion" rows="3" required></textarea><br>
+        <label>Costo:</label>
+        <input type="number" name="costo" required><br>
+        <button type="submit">Agregar</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Servicios actuales</h2>
+      <table>
+        <tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Costo</th><th>Acciones</th></tr>
+        <% servicios.forEach(s => { %>
+          <tr>
+            <td><%= s._id %></td>
+            <td><%= s.nombre %></td>
+            <td><%= s.descripcion %></td>
+            <td>$<%= s.costo %></td>
+            <td>
+              <form method="POST" action="/eliminar_servicio">
+                <input type="hidden" name="id" value="<%= s._id %>">
+                <button type="submit">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </table>
+    </section>
+  </main>
+</body>
+</html>

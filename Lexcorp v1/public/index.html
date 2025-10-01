@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bufete de Abogados - Justicia y Confianza</title>
+</head>
+<body>
+  <header>
+    <h1>Bufete de Abogados "Justicia y Confianza"</h1>
+    <nav>
+      <a href="#inicio">Inicio</a> |
+      <a href="#mision">Misión</a> |
+      <a href="#vision">Visión</a> |
+      <a href="#servicios">Servicios</a> |
+      <a href="#contacto">Contacto</a>
+    </nav>
+  </header>
+
+  <section id="inicio"> 
+    <h2>Bienvenidos</h2>
+    <p>
+      Somos un bufete de abogados comprometido con la justicia y la defensa de los derechos
+      de nuestros clientes. Más de 20 años de experiencia nos respaldan.
+    </p>
+    <img src="/abogados.jpg" alt="Equipo de abogados" width="400">
+  </section>
+
+  <section id="mision">
+    <h2>Nuestra Misión</h2>
+    <p>
+      Brindar asesoría legal de calidad, defendiendo los intereses de nuestros clientes
+      con profesionalismo, ética y compromiso.
+    </p>
+  </section>
+
+  <section id="vision">
+    <h2>Nuestra Visión</h2>
+    <p>
+      Ser el bufete líder en la región, reconocido por nuestra excelencia profesional
+      y por lograr soluciones legales justas y efectivas.
+    </p>
+  </section>
+
+  <section id="servicios">
+    <h2>Servicios Legales</h2>
+    <ul id="lista-servicios">
+      <!-- Servicios se llenarán automáticamente desde MongoDB -->
+    </ul>
+  </section>
+
+  <section id="contacto">
+    <h2>Contáctanos</h2>
+    <form id="contactForm">
+      <label for="nombre">Nombre:</label><br>
+      <input type="text" id="nombre" name="nombre" required><br><br>
+
+      <label for="correo">Correo:</label><br>
+      <input type="email" id="correo" name="correo" required><br><br>
+
+      <label for="mensaje">Mensaje:</label><br>
+      <textarea id="mensaje" name="mensaje" rows="5"></textarea><br><br>
+
+      <button type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <footer>
+    <p>Bufete de Abogados "Justicia y Confianza" 2025 | Todos los derechos reservados</p>
+  </footer>
+
+  <script>
+    // Cargar servicios desde MongoDB (ruta de tu server.js)
+    fetch("/servicios")
+      .then(res => res.json())
+      .then(data => {
+          const lista = document.getElementById("lista-servicios");
+          lista.innerHTML = "";
+          data.forEach(servicio => {
+              const li = document.createElement("li");
+              li.textContent = `${servicio.nombre} - $${servicio.costo}`;
+              lista.appendChild(li);
+          });
+      });
+  </script>
+</body>
+</html>
