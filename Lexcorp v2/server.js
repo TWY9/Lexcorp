@@ -67,19 +67,31 @@ app.post("/login", async (req, res) => {
 });
 
 // Registro
-app.get("/registro", (req, res) => res.render("registro", { mensaje: "" }));
+app.get("/registro", (req, res) => res.render("registro"));
 
 app.post("/registro", async (req, res) => {
-  const { usuario, correo, nombre, contrasena, confirmar_contrasena } = req.body;
+  const { usuario, nombre, correo, contrasena } = req.body;
 
-  if (contrasena !== confirmar_contrasena) {
-    return res.render("registro", { mensaje: "Las contraseñas no coinciden" });
+  // Revisar si ya existe el usuario
+  const existente = await Cliente.findOne({ usuario });
+  if (existente) {
+    return res.send("El usuario ya existe");
   }
 
-  const nuevoCliente = new Cliente({ usuario, correo, nombre, contrasena, rol: "user" });
+  // Crear usuario
+  const nuevoCliente = new Cliente({
+    usuario,
+    nombre,
+    correo,
+    contrasena,
+    rol: "user"
+  });
+
   await nuevoCliente.save();
-  res.redirect("/");
+  res.redirect("/"); // Redirige al login
 });
+
+
 
 // Página de inicio
 app.get("/inicio", async (req, res) => {
@@ -123,4 +135,4 @@ app.get("/logout", (req, res) => {
 });
 
 // Servidor
-app.listen(3000, () => console.log("Servidor corriendo en http://localhost:3000"));
+app.listen(3000, () => console.log("Servidor corriendo en http://192.168.1.85:3000"));

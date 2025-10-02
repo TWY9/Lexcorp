@@ -3,18 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <title>Registro</title>
-  <link rel="stylesheet" href="/static/login.css">
+  <link rel="stylesheet" href="/registro.css">
 </head>
 <body>
   <header><h1>Registro de Usuario</h1></header>
 
-  <form action="/registro" method="POST">
-    <label>Usuario:</label>
-    <input type="text" name="usuario" required><br>
-    <label>Contraseña:</label>
-    <input type="password" name="contrasena" required><br>
-    <button type="submit">Registrarse</button>
-  </form>
+  <section id="registro">
+    <form action="/registro" method="POST">
+      <h2>Crear cuenta</h2>
+
+      <label>Usuario:</label>
+      <input type="text" name="usuario" required><br><br>
+
+      <label>Nombre:</label>
+      <input type="text" name="nombre" required><br><br>
+
+      <label>Correo:</label>
+      <input type="email" name="correo" required><br><br>
+
+      <label>Contraseña:</label>
+      <input type="password" name="contrasena" required><br><br>
+
+      <p>¿Ya tienes una cuenta? <a href="/">Inicia sesión</a></p>
+      <button type="submit">Registrarse</button>
+    </form>
+  </section>
 
   <footer><p>Bufete de Abogados "Justicia y Confianza" 2025</p></footer>
 </body>
