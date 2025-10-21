@@ -135,4 +135,4 @@ app.get("/logout", (req, res) => {
 });
 
 // Servidor
-app.listen(3000, () => console.log("Servidor corriendo en http://10.31.3.116:3000"));
+app.listen(3000, () => console.log("Servidor corriendo en http://192.168.1.85:3000"));
