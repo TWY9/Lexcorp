@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Usuarios</title>
+    <link rel="stylesheet" href="/admin_usuarios.css">
+</head>
+
+<body>
+
+<h1>Gestión de Usuarios</h1>
+
+<!-- 🔍 BUSCADOR AJAX -->
+<input type="text" id="buscador" placeholder="Buscar usuario..." style="margin-bottom: 15px; padding: 5px; width: 250px;">
+
+<div id="resultados"></div>
+
+<hr>
+
+<a href="/admin/usuarios/agregar">➕ Agregar Usuario</a>
+
+<table border="1" cellpadding="10">
+    <tr>
+        <th>Usuario</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+    </tr>
+
+    <% usuarios.forEach(u => { %>
+        <tr>
+            <td><%= u.usuario %></td>
+            <td><%= u.rol %></td>
+            <td>
+                <a href="/admin/usuarios/editar/<%= u._id %>">✏️ Editar</a> |
+                <a href="/admin/usuarios/eliminar/<%= u._id %>" onclick="return confirm('¿Eliminar usuario?')">🗑️ Eliminar</a>
+            </td>
+        </tr>
+    <% }) %>
+</table>
+
+<!-- SCRIPT AJAX PARA BUSCAR USUARIOS -->
+<script>
+document.getElementById("buscador").addEventListener("input", async (e) => {
+    const q = e.target.value;
+
+    const res = await fetch(`/admin/usuarios/buscar?q=${q}`);
+    const data = await res.json();
+
+    let html = "<ul>";
+    data.forEach(u => {
+        html += `<li>${u.usuario} (${u.rol})</li>`;
+    });
+    html += "</ul>";
+
+    document.getElementById("resultados").innerHTML = html;
+});
+</script>
+
+</body>
+</html>

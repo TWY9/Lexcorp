@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Usuario</title>
+    <link rel="stylesheet" href="/admin_usuarios.css">
+</head>
+
+<body>
+
+<h1>Editar Usuario</h1>
+
+<form action="/admin/usuarios/editar/<%= usuario._id %>" method="POST">
+    <label>Usuario:</label>
+    <input type="text" name="usuario" value="<%= usuario.usuario %>" required>
+
+    <label>Rol:</label>
+    <select name="rol">
+        <option value="usuario" <%= usuario.rol === "usuario" ? "selected" : "" %>>Usuario</option>
+        <option value="admin" <%= usuario.rol === "admin" ? "selected" : "" %>>Administrador</option>
+    </select>
+
+    <button type="submit">Guardar Cambios</button>
+</form>
+
+</body>
+</html>

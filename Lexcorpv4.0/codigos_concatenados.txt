@@ -1,0 +1,3166 @@
+================================================================================
+CÓDIGOS CONCATENADOS - BUSQUEDA EN: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0
+================================================================================
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\concatenar.py
+============================================================
+
+import os
+import glob
+
+def buscar_y_concatenar_codigos(ruta_inicial, archivo_salida="codigos_concatenados.txt"):
+    """
+    Busca archivos de código en una ruta y sus subcarpetas,
+    y concatena su contenido en un archivo de texto.
+    Excluye la carpeta node_modules.
+    """
+    
+    # Extensiones de archivos de código comunes (puedes agregar más)
+    extensiones = [
+        '*.py', '*.js', '*.html', '*.css', '*.java', '*.cpp', '*.c', '*.php',
+        '*.rb', '*.go', '*.rs', '*.ts', '*.jsx', '*.tsx', '*.vue', '*.json',
+        '*.xml', '*.sql', '*.sh', '*.bat', '*.ps1', '*.md', '*.txt', '*.ejs'
+    ]
+    
+    archivos_encontrados = []
+    
+    with open(archivo_salida, 'w', encoding='utf-8') as archivo_final:
+        # Escribir encabezado
+        archivo_final.write("=" * 80 + "\n")
+        archivo_final.write("CÓDIGOS CONCATENADOS - BUSQUEDA EN: " + ruta_inicial + "\n")
+        archivo_final.write("=" * 80 + "\n\n")
+        
+        # Buscar archivos por cada extensión
+        for extension in extensiones:
+            patron_busqueda = os.path.join(ruta_inicial, "**", extension)
+            archivos = glob.glob(patron_busqueda, recursive=True)
+            
+            for archivo in archivos:
+                # Omitir el archivo de salida si existe
+                if os.path.basename(archivo) == archivo_salida:
+                    continue
+                
+                # Excluir archivos dentro de node_modules
+                if 'node_modules' in archivo.split(os.sep):
+                    continue
+                    
+                archivos_encontrados.append(archivo)
+                
+                try:
+                    # Escribir información del archivo
+                    archivo_final.write("\n" + "=" * 60 + "\n")
+                    archivo_final.write(f"ARCHIVO: {archivo}\n")
+                    archivo_final.write("=" * 60 + "\n\n")
+                    
+                    # Leer y escribir el contenido del archivo
+                    with open(archivo, 'r', encoding='utf-8', errors='ignore') as f:
+                        contenido = f.read()
+                        archivo_final.write(contenido)
+                        archivo_final.write("\n\n")  # Espacio entre archivos
+                        
+                    print(f"✓ Procesado: {archivo}")
+                    
+                except Exception as e:
+                    print(f"✗ Error al procesar {archivo}: {str(e)}")
+                    archivo_final.write(f"// ERROR al leer este archivo: {str(e)}\n\n")
+        
+        # Escribir resumen al final
+        archivo_final.write("\n" + "=" * 80 + "\n")
+        archivo_final.write(f"RESUMEN: Se encontraron {len(archivos_encontrados)} archivos\n")
+        archivo_final.write("=" * 80 + "\n")
+        
+        for i, archivo in enumerate(archivos_encontrados, 1):
+            archivo_final.write(f"{i:2d}. {archivo}\n")
+    
+    return archivos_encontrados
+
+def main():
+    print("CONCATENADOR DE CÓDIGOS")
+    print("=" * 50)
+    
+    # Obtener la ruta actual o pedirla al usuario
+    ruta_actual = os.getcwd()
+    print(f"Ruta actual: {ruta_actual}")
+    
+    respuesta = input("¿Quieres usar esta ruta? (s/n): ").lower().strip()
+    
+    if respuesta == 's' or respuesta == '':
+        ruta_busqueda = ruta_actual
+    else:
+        ruta_busqueda = input("Ingresa la ruta completa a buscar: ").strip()
+        if not os.path.exists(ruta_busqueda):
+            print("¡La ruta no existe! Usando ruta actual.")
+            ruta_busqueda = ruta_actual
+    
+    # Nombre del archivo de salida
+    archivo_salida = input("Nombre del archivo de salida (default: codigos_concatenados.txt): ").strip()
+    if not archivo_salida:
+        archivo_salida = "codigos_concatenados.txt"
+    
+    print(f"\nBuscando archivos de código en: {ruta_busqueda}")
+    print("Excluyendo carpeta node_modules...")
+    print("Esto puede tomar unos momentos...\n")
+    
+    try:
+        archivos = buscar_y_concatenar_codigos(ruta_busqueda, archivo_salida)
+        
+        print(f"\n¡Proceso completado!")
+        print(f"Se encontraron {len(archivos)} archivos")
+        print(f"Resultado guardado en: {os.path.join(ruta_busqueda, archivo_salida)}")
+        
+        # Mostrar archivos encontrados
+        print("\nArchivos procesados:")
+        for archivo in archivos:
+            print(f"  - {archivo}")
+            
+    except Exception as e:
+        print(f"Error durante el proceso: {str(e)}")
+
+if __name__ == "__main__":
+    main()
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\create_admin.js
+============================================================
+
+require('dotenv').config();
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const Usuario = require('./models/Usuario');
+
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/lexcorp";
+const ADMIN_USER = "admin";
+const ADMIN_PASS = "Admin123!";
+
+(async () => {
+  await mongoose.connect(MONGO_URI);
+
+  const existe = await Usuario.findOne({ usuario: ADMIN_USER });
+  if (existe) {
+    console.log("El admin ya existe");
+    process.exit(0);
+  }
+
+  const hash = await bcrypt.hash(ADMIN_PASS, 10);
+
+  await new Usuario({
+    usuario: ADMIN_USER,
+    contrasena: hash,
+    rol: "admin",
+    nombre: "Administrador",
+    correo: ""
+  }).save();
+
+  console.log("Administrador creado.");
+  process.exit(0);
+})();
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\server.js
+============================================================
+
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const path = require("path");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const bcrypt = require("bcryptjs");
+const helmet = require("helmet");
+const { body, validationResult } = require("express-validator");
+const xss = require("xss");
+
+const app = express();
+
+// CONFIG
+const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/lexcorp";
+const SESSION_SECRET = process.env.SESSION_SECRET || "cambiar_esto";
+const SALT = 10;
+
+// MIDDLEWARE
+app.use(helmet());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+// CONEXIÓN MONGODB
+mongoose.connect(MONGO_URI)
+  .then(() => console.log("Mongo conectado"))
+  .catch(err => console.log("Error Mongo:", err));
+
+const Usuario = require("./models/Usuario");
+const Servicio = require("./models/Servicio");
+
+// SESIONES
+app.use(session({
+  secret: SESSION_SECRET,
+  saveUninitialized: false,
+  resave: false,
+  store: MongoStore.create({ mongoUrl: MONGO_URI }),
+  cookie: {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24
+  }
+}));
+
+// MIDDLEWARE DE ROLES
+function roleRequired(roles) {
+  return (req, res, next) => {
+    if (!req.session.usuario) return res.redirect("/");
+    if (!roles.includes(req.session.rol)) return res.status(403).send("Acceso denegado.");
+    next();
+  };
+}
+
+// LOGIN PAGE
+app.get("/", (req, res) => res.render("login"));
+
+// LOGIN POST
+app.post("/login",
+  body("usuario").trim().notEmpty(),
+  body("contrasena").notEmpty(),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.send("Rellena todos los campos");
+
+    const usuario = xss(req.body.usuario);
+    const contrasena = req.body.contrasena;
+
+    const user = await Usuario.findOne({ usuario });
+    if (!user) return res.send("Usuario o contraseña incorrectos");
+
+    const ok = await bcrypt.compare(contrasena, user.contrasena);
+    if (!ok) return res.send("Usuario o contraseña incorrectos");
+
+    req.session.usuario = user.usuario;
+    req.session.rol = user.rol;
+    res.redirect("/inicio");
+  }
+);
+
+// REGISTRO PAGE
+app.get("/registro", (req, res) => res.render("registro"));
+
+// AJAX VALIDAR USUARIO
+app.get("/check-usuario", async (req, res) => {
+  const q = (req.query.usuario || "").trim();
+  if (!q) return res.json({ ok: false });
+
+  const existe = await Usuario.exists({ usuario: q });
+  res.json({ ok: true, disponible: !existe });
+});
+
+// REGISTRO POST
+app.post("/registro",
+  body("usuario").trim().isLength({ min: 3 }),
+  body("correo").isEmail(),
+  body("contrasena").isLength({ min: 8 }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.send("Datos inválidos");
+
+    const usuario = xss(req.body.usuario);
+    const nombre = xss(req.body.nombre || "");
+    const correo = xss(req.body.correo || "");
+    const contrasena = req.body.contrasena;
+
+    if (await Usuario.findOne({ usuario })) {
+      return res.send("El usuario ya existe");
+    }
+
+    const hash = await bcrypt.hash(contrasena, SALT);
+
+    await new Usuario({
+      usuario,
+      contrasena: hash,
+      rol: "cliente",
+      nombre,
+      correo
+    }).save();
+
+    res.redirect("/");
+  }
+);
+
+// INICIO
+app.get("/inicio", async (req, res) => {
+  if (!req.session.usuario) return res.redirect("/");
+  const servicios = await Servicio.find();
+  res.render("inicio", { usuario: req.session.usuario, rol: req.session.rol, servicios });
+});
+
+// ADMIN
+app.get("/admin", roleRequired(["admin"]), async (req, res) => {
+  const servicios = await Servicio.find();
+  res.render("admin", { servicios });
+});
+
+// AGREGAR SERVICIO
+app.post("/agregar_servicio", roleRequired(["admin"]), async (req, res) => {
+  await new Servicio({
+    nombre: xss(req.body.nombre),
+    descripcion: xss(req.body.descripcion),
+    costo: parseFloat(req.body.costo)
+  }).save();
+
+  res.redirect("/admin");
+});
+
+// ACTUALIZAR
+app.post("/actualizar_servicio", roleRequired(["admin"]), async (req, res) => {
+  await Servicio.findByIdAndUpdate(req.body.id, {
+    nombre: xss(req.body.nombre),
+    descripcion: xss(req.body.descripcion),
+    costo: parseFloat(req.body.costo)
+  });
+  res.redirect("/admin");
+});
+
+// ELIMINAR
+app.post("/eliminar_servicio", roleRequired(["admin"]), async (req, res) => {
+  await Servicio.findByIdAndDelete(req.body.id);
+  res.redirect("/admin");
+});
+
+// LOGOUT
+app.get("/logout", (req, res) => {
+  req.session.destroy(() => res.redirect("/"));
+});
+
+// ESTADO BD
+app.get("/conexion", (req, res) => {
+  const estado = mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado";
+  res.render("conexion", { estado });
+});
+
+// CRUD DE USUARIOS SOLO ADMIN
+app.use('/admin/usuarios', require('./routes/adminUsuarios'));
+
+
+app.listen(PORT, () => console.log(`Servidor en http://localhost:${PORT}`));
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\models\Servicio.js
+============================================================
+
+const mongoose = require("mongoose");
+
+const servicioSchema = new mongoose.Schema({
+  nombre: String,
+  descripcion: String,
+  costo: Number
+});
+
+module.exports = mongoose.model("Servicio", servicioSchema);
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\models\Usuario.js
+============================================================
+
+const mongoose = require("mongoose");
+
+const usuarioSchema = new mongoose.Schema({
+  usuario: { type: String, required: true, unique: true },
+  contrasena: { type: String, required: true },
+  rol: { type: String, default: "cliente" },
+  nombre: String,
+  correo: String,
+  creado_en: { type: Date, default: Date.now }
+});
+
+module.exports = mongoose.model("Usuario", usuarioSchema);
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\js\eventos.js
+============================================================
+
+
+$(document).ready(function() {
+  
+  $("header h1").hide().fadeIn(1200);
+
+  
+  $("nav a").on("click", function(e) {
+    if (this.hash !== "") {
+      e.preventDefault();
+      const destino = this.hash;
+      $("html, body").animate({
+        scrollTop: $(destino).offset().top
+      }, 800);
+    }
+  });
+
+  
+  $("#servicios ul li").hover(
+    function() { $(this).css("background", "#C9A227"); },
+    function() { $(this).css("background", "#1B263B"); }
+  );
+});
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\js\registro-check.js
+============================================================
+
+$(document).ready(function () {
+
+    let timer;
+
+    $("input[name='usuario']").on("input", function () {
+        clearTimeout(timer);
+        const val = $(this).val().trim();
+        if (!val) {
+            $("#usuario-status").text("");
+            return;
+        }
+
+        timer = setTimeout(() => {
+            $.get("/check-usuario", { usuario: val })
+                .done(res => {
+                    if (res.disponible) {
+                        $("#usuario-status").css("color", "green").text("Disponible");
+                    } else {
+                        $("#usuario-status").css("color", "red").text("No disponible");
+                    }
+                })
+                .fail(() => {
+                    $("#usuario-status").css("color", "orange").text("Error");
+                });
+        }, 400);
+    });
+
+});
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\js\validaciones.js
+============================================================
+
+$(document).ready(function() {
+  
+  $.validator.addMethod("strongPassword", function(value, element) {
+    return this.optional(element) || 
+      /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(value);
+  }, 
+  "La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial.");
+
+  // --- Validación de Login ---
+  $("form[action='/login']").validate({
+    rules: {
+      usuario: "required",
+      contrasena: { required: true, minlength: 4 }
+    },
+    messages: {
+      usuario: "Ingresa tu usuario",
+      contrasena: {
+        required: "Ingresa tu contraseña",
+        minlength: "Debe tener al menos 4 caracteres"
+      }
+    }
+  });
+
+  // --- Validación de Registro ---
+  $("form[action='/registro']").validate({
+    rules: {
+      usuario: "required",
+      nombre: "required",
+      correo: { 
+        required: true, 
+        email: true 
+      },
+      contrasena: { 
+        required: true, 
+        strongPassword: true 
+      }
+    },
+    messages: {
+      usuario: "Ingresa tu nombre de usuario",
+      nombre: "Ingresa tu nombre completo",
+      correo: {
+        required: "Ingresa tu correo electrónico",
+        email: "Por favor, escribe un correo válido (ejemplo@dominio.com)"
+      },
+      contrasena: {
+        required: "Ingresa una contraseña",
+        strongPassword: "Debe tener 8 caracteres, una mayúscula, un número y un caracter especial."
+      }
+    },
+    errorPlacement: function(error, element) {
+      error.css({
+        color: "#b22222",
+        fontSize: "0.9em",
+        marginTop: "5px"
+      });
+      error.insertAfter(element);
+    }
+  });
+
+  // (admin) ---
+  $("form[action='/agregar_servicio']").validate({
+    rules: {
+      nombre: "required",
+      descripcion: "required",
+      costo: { required: true, number: true, min: 1 }
+    },
+    messages: {
+      nombre: "Ingresa un nombre",
+      descripcion: "Agrega una descripción",
+      costo: "Agrega un costo válido"
+    },
+    errorPlacement: function(error, element) {
+      error.css({
+        color: "#b22222",
+        fontSize: "0.9em",
+        marginTop: "5px"
+      });
+      error.insertAfter(element);
+    }
+  });
+});
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\routes\adminUsuarios.js
+============================================================
+
+const express = require('express');
+const router = express.Router();
+const Usuario = require('../models/Usuario');
+const bcrypt = require('bcryptjs');
+
+// ⭐ Middleware SIN carpeta middlewares
+const roleRequired = (roles) => {
+    return (req, res, next) => {
+        if (!req.session.usuario) return res.redirect("/");
+        if (!roles.includes(req.session.rol)) return res.status(403).send("Acceso denegado.");
+        next();
+    };
+};
+
+// LISTAR USUARIOS
+router.get('/', roleRequired(["admin"]), async (req, res) => {
+    const usuarios = await Usuario.find();
+    res.render('admin/usuarios', { usuarios });
+});
+
+// FORMULARIO AGREGAR USUARIO
+router.get('/agregar', roleRequired(["admin"]), (req, res) => {
+    res.render('admin/agregar_usuario');
+});
+
+// GUARDAR USUARIO NUEVO
+router.post('/agregar', roleRequired(["admin"]), async (req, res) => {
+    const { usuario, password, rol } = req.body;
+    const hashed = await bcrypt.hash(password, 10);
+
+    await Usuario.create({
+        usuario,
+        contrasena: hashed,
+        rol
+    });
+
+    res.redirect('/admin/usuarios');
+});
+
+// FORMULARIO EDITAR
+router.get('/editar/:id', roleRequired(["admin"]), async (req, res) => {
+    const usuario = await Usuario.findById(req.params.id);
+    res.render('admin/editar_usuario', { usuario });
+});
+
+// GUARDAR EDICIÓN
+router.post('/editar/:id', roleRequired(["admin"]), async (req, res) => {
+    const { usuario, rol } = req.body;
+
+    await Usuario.findByIdAndUpdate(req.params.id, {
+        usuario,
+        rol
+    });
+
+    res.redirect('/admin/usuarios');
+});
+
+// ELIMINAR
+router.get('/eliminar/:id', roleRequired(["admin"]), async (req, res) => {
+    await Usuario.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/usuarios');
+});
+
+// AJAX BUSCAR USUARIOS
+router.get('/buscar', roleRequired(["admin"]), async (req, res) => {
+    const q = req.query.q || '';
+
+    const usuarios = await Usuario.find({
+        usuario: { $regex: q, $options: 'i' }
+    });
+
+    res.json(usuarios);
+});
+
+module.exports = router;
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\admin.css
+============================================================
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  background: #f4f4f9;
+  color: #333;
+}
+
+header {
+  background: #002855;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+header nav a {
+  color: white;
+  margin: 0 10px;
+  text-decoration: none;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav a:hover {
+  color: #C9A227;
+}
+
+main {
+  padding: 20px;
+}
+
+section {
+  background: white;
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+form input, form textarea, form select, form button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+form button {
+  background: #002855;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+form button:hover {
+  background: #004080;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+table th, table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+table th {
+  background: #002855;
+  color: white;
+}
+
+footer {
+  background: #1B263B;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  border-top: 5px solid #C9A227;
+  font-size: 0.9em;
+}
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\admin_usuarios.css
+============================================================
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 20px;
+    color: #333;
+}
+
+#buscador {
+    display: block;
+    margin: 15px auto;
+    padding: 8px 12px;
+    width: 280px;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+}
+
+#resultados {
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+    padding: 10px;
+}
+
+#resultados ul {
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+table {
+    width: 80%;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+table th {
+    background: #333;
+    color: white;
+    padding: 10px;
+}
+
+table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+}
+
+a:hover {
+    color: #0056b3;
+}
+
+button {
+    padding: 6px 12px;
+    background: #dc3545;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #b02a37;
+}
+
+form {
+    width: 350px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    color: #555;
+}
+
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #aaa;
+}
+
+button[type="submit"] {
+    width: 100%;
+    background: #28a745;
+}
+
+button[type="submit"]:hover {
+    background: #1e7e34;
+}
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\index.css
+============================================================
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #E0E1DD;
+  color: #1B263B;
+  line-height: 1.6;
+}
+
+header {
+  background-color: #1B263B;
+  color: white;
+  padding: 30px;
+  text-align: center;
+  border-bottom: 5px solid #C9A227;
+}
+
+header h1 {
+  margin-bottom: 15px;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav a:hover {
+  color: #C9A227;
+}
+
+
+section {
+  padding: 40px 20px;
+  max-width: 900px;
+  margin: auto;
+}
+
+section h2 {
+  color: #1B263B;
+  border-left: 6px solid #C9A227;
+  padding-left: 10px;
+  margin-bottom: 20px;
+}
+
+section p,
+section ul {
+  font-size: 1.1em;
+  margin-bottom: 15px;
+}
+
+
+
+ul li {
+  background: #1B263B;
+  color: white;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-left: 6px solid #C9A227;
+  border-radius: 5px;
+}
+
+form {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+form label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0%;
+}
+
+form input,
+form textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: none;
+}
+#servicios ul li {
+  background-color: #1B263B;
+  color: white;
+  padding: 10px;
+  margin-bottom: 8px;
+  transition: 0.3s;
+}
+
+form button {
+  background: #1B263B;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: 0.3s;
+}
+
+form button:hover {
+  background: #C9A227;
+  color: #1B263B;
+}
+
+footer {
+  background: #1B263B;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  border-top: 5px solid #C9A227;
+}
+
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\login.css
+============================================================
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #E0E1DD;
+  color: #1B263B;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+p{
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+header {
+  background-color: #1B263B;
+  color: white;
+  padding: 30px;
+  text-align: center;
+  border-bottom: 5px solid #C9A227;
+}
+
+header h1 {
+  margin-bottom: 15px;
+}
+
+#login {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+form h2 {
+  color: #1B263B;
+  border-left: 6px solid #C9A227;
+  padding-left: 10px;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+  text-align: left;
+}
+
+form {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0px 3px 10px rgba(0,0,0,0.2);
+  width: 1000%;
+  max-width: 400px;
+}
+
+form label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+  color: #1B263B;
+}
+
+form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
+form button {
+  width: 100%;
+  padding: 12px;
+  background: #1B263B;
+  color: white;
+  border: none;
+  font-size: 1em;
+}
+
+form button:hover {
+  background: #C9A227;
+  color: #1B263B;
+}
+
+footer {
+  background: #1B263B;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  border-top: 5px solid #C9A227;
+  font-size: 0.9em;
+}
+
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\registro.css
+============================================================
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #E0E1DD;
+  color: #1B263B;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header {
+  background-color: #1B263B;
+  color: white;
+  padding: 30px;
+  text-align: center;
+  border-bottom: 5px solid #C9A227;
+}
+
+header h1 {
+  margin-bottom: 15px;
+}
+
+#registro {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+form {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0px 3px 10px rgba(0,0,0,0.2);
+  width: 1000%;
+  max-width: 400px;
+}
+
+form h2 {
+  color: #1B263B;
+  border-left: 6px solid #C9A227;
+  padding-left: 10px;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+  text-align: left;
+}
+
+form label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+  color: #1B263B;
+}
+
+form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
+form button {
+  width: 100%;
+  padding: 12px;
+  background: #1B263B;
+  color: white;
+  border: none;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+form button:hover {
+  background: #C9A227;
+  color: #1B263B;
+}
+
+p {
+  margin-bottom: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+
+foote
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\package-lock.json
+============================================================
+
+{
+  "name": "lexcorp-v2",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "lexcorp-v2",
+      "version": "1.0.0",
+      "license": "ISC",
+      "dependencies": {
+        "bcryptjs": "^3.0.3",
+        "body-parser": "^2.2.0",
+        "connect-mongo": "^5.1.0",
+        "dotenv": "^17.2.3",
+        "ejs": "^3.1.10",
+        "express": "^5.1.0",
+        "express-session": "^1.18.2",
+        "express-validator": "^7.3.0",
+        "helmet": "^8.1.0",
+        "jquery": "^3.7.1",
+        "jquery-validation": "^1.21.0",
+        "mongoose": "^8.18.3",
+        "xss": "^1.0.15"
+      }
+    },
+    "node_modules/@mongodb-js/saslprep": {
+      "version": "1.3.1",
+      "resolved": "https://registry.npmjs.org/@mongodb-js/saslprep/-/saslprep-1.3.1.tgz",
+      "integrity": "sha512-6nZrq5kfAz0POWyhljnbWQQJQ5uT8oE2ddX303q1uY0tWsivWKgBDXBBvuFPwOqRRalXJuVO9EjOdVtuhLX0zg==",
+      "license": "MIT",
+      "dependencies": {
+        "sparse-bitfield": "^3.0.3"
+      }
+    },
+    "node_modules/@types/webidl-conversions": {
+      "version": "7.0.3",
+      "resolved": "https://registry.npmjs.org/@types/webidl-conversions/-/webidl-conversions-7.0.3.tgz",
+      "integrity": "sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==",
+      "license": "MIT"
+    },
+    "node_modules/@types/whatwg-url": {
+      "version": "11.0.5",
+      "resolved": "https://registry.npmjs.org/@types/whatwg-url/-/whatwg-url-11.0.5.tgz",
+      "integrity": "sha512-coYR071JRaHa+xoEvvYqvnIHaVqaYrLPbsufM9BF63HkwI5Lgmy2QR8Q5K/lYDYo5AK82wOvSOS0UsLTpTG7uQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/webidl-conversions": "*"
+      }
+    },
+    "node_modules/accepts": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/accepts/-/accepts-2.0.0.tgz",
+      "integrity": "sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==",
+      "license": "MIT",
+      "dependencies": {
+        "mime-types": "^3.0.0",
+        "negotiator": "^1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/asn1.js": {
+      "version": "5.4.1",
+      "resolved": "https://registry.npmjs.org/asn1.js/-/asn1.js-5.4.1.tgz",
+      "integrity": "sha512-+I//4cYPccV8LdmBLiX8CYvf9Sp3vQsrqu2QNXRcrbiWvcx/UdlFiqUJJzxRQxgsZmvhXhn4cSKeSmoFjVdupA==",
+      "license": "MIT",
+      "dependencies": {
+        "bn.js": "^4.0.0",
+        "inherits": "^2.0.1",
+        "minimalistic-assert": "^1.0.0",
+        "safer-buffer": "^2.1.0"
+      }
+    },
+    "node_modules/async": {
+      "version": "3.2.6",
+      "resolved": "https://registry.npmjs.org/async/-/async-3.2.6.tgz",
+      "integrity": "sha512-htCUDlxyyCLMgaM3xXg0C0LW2xqfuQ6p05pCEIsXuyQ+a1koYKTuBMzRNwmybfLgvJDMd0r1LTn4+E0Ti6C2AA==",
+      "license": "MIT"
+    },
+    "node_modules/balanced-match": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz",
+      "integrity": "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==",
+      "license": "MIT"
+    },
+    "node_modules/bcryptjs": {
+      "version": "3.0.3",
+      "resolved": "https://registry.npmjs.org/bcryptjs/-/bcryptjs-3.0.3.tgz",
+      "integrity": "sha512-GlF5wPWnSa/X5LKM1o0wz0suXIINz1iHRLvTS+sLyi7XPbe5ycmYI3DlZqVGZZtDgl4DmasFg7gOB3JYbphV5g==",
+      "license": "BSD-3-Clause",
+      "bin": {
+        "bcrypt": "bin/bcrypt"
+      }
+    },
+    "node_modules/bn.js": {
+      "version": "4.12.2",
+      "resolved": "https://registry.npmjs.org/bn.js/-/bn.js-4.12.2.tgz",
+      "integrity": "sha512-n4DSx829VRTRByMRGdjQ9iqsN0Bh4OolPsFnaZBLcbi8iXcB+kJ9s7EnRt4wILZNV3kPLHkRVfOc/HvhC3ovDw==",
+      "license": "MIT"
+    },
+    "node_modules/body-parser": {
+      "version": "2.2.0",
+      "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-2.2.0.tgz",
+      "integrity": "sha512-02qvAaxv8tp7fBa/mw1ga98OGm+eCbqzJOKoRt70sLmfEEi+jyBYVTDGfCL/k06/4EMk/z01gCe7HoCH/f2LTg==",
+      "license": "MIT",
+      "dependencies": {
+        "bytes": "^3.1.2",
+        "content-type": "^1.0.5",
+        "debug": "^4.4.0",
+        "http-errors": "^2.0.0",
+        "iconv-lite": "^0.6.3",
+        "on-finished": "^2.4.1",
+        "qs": "^6.14.0",
+        "raw-body": "^3.0.0",
+        "type-is": "^2.0.0"
+      },
+      "engines": {
+        "node": ">=18"
+      }
+    },
+    "node_modules/brace-expansion": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-2.0.2.tgz",
+      "integrity": "sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ==",
+      "license": "MIT",
+      "dependencies": {
+        "balanced-match": "^1.0.0"
+      }
+    },
+    "node_modules/bson": {
+      "version": "6.10.4",
+      "resolved": "https://registry.npmjs.org/bson/-/bson-6.10.4.tgz",
+      "integrity": "sha512-WIsKqkSC0ABoBJuT1LEX+2HEvNmNKKgnTAyd0fL8qzK4SH2i9NXg+t08YtdZp/V9IZ33cxe3iV4yM0qg8lMQng==",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=16.20.1"
+      }
+    },
+    "node_modules/bytes": {
+      "version": "3.1.2",
+      "resolved": "https://registry.npmjs.org/bytes/-/bytes-3.1.2.tgz",
+      "integrity": "sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/call-bind-apply-helpers": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/call-bind-apply-helpers/-/call-bind-apply-helpers-1.0.2.tgz",
+      "integrity": "sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0",
+        "function-bind": "^1.1.2"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/call-bound": {
+      "version": "1.0.4",
+      "resolved": "https://registry.npmjs.org/call-bound/-/call-bound-1.0.4.tgz",
+      "integrity": "sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bind-apply-helpers": "^1.0.2",
+        "get-intrinsic": "^1.3.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/commander": {
+      "version": "2.20.3",
+      "resolved": "https://registry.npmjs.org/commander/-/commander-2.20.3.tgz",
+      "integrity": "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==",
+      "license": "MIT"
+    },
+    "node_modules/connect-mongo": {
+      "version": "5.1.0",
+      "resolved": "https://registry.npmjs.org/connect-mongo/-/connect-mongo-5.1.0.tgz",
+      "integrity": "sha512-xT0vxQLqyqoUTxPLzlP9a/u+vir0zNkhiy9uAdHjSCcUUf7TS5b55Icw8lVyYFxfemP3Mf9gdwUOgeF3cxCAhw==",
+      "license": "MIT",
+      "dependencies": {
+        "debug": "^4.3.1",
+        "kruptein": "^3.0.0"
+      },
+      "engines": {
+        "node": ">=12.9.0"
+      },
+      "peerDependencies": {
+        "express-session": "^1.17.1",
+        "mongodb": ">= 5.1.0 < 7"
+      }
+    },
+    "node_modules/content-disposition": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/content-disposition/-/content-disposition-1.0.0.tgz",
+      "integrity": "sha512-Au9nRL8VNUut/XSzbQA38+M78dzP4D+eqg3gfJHMIHHYa3bg067xj1KxMUWj+VULbiZMowKngFFbKczUrNJ1mg==",
+      "license": "MIT",
+      "dependencies": {
+        "safe-buffer": "5.2.1"
+      },
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/content-type": {
+      "version": "1.0.5",
+      "resolved": "https://registry.npmjs.org/content-type/-/content-type-1.0.5.tgz",
+      "integrity": "sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/cookie": {
+      "version": "0.7.2",
+      "resolved": "https://registry.npmjs.org/cookie/-/cookie-0.7.2.tgz",
+      "integrity": "sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/cookie-signature": {
+      "version": "1.2.2",
+      "resolved": "https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.2.2.tgz",
+      "integrity": "sha512-D76uU73ulSXrD1UXF4KE2TMxVVwhsnCgfAyTg9k8P6KGZjlXKrOLe4dJQKI3Bxi5wjesZoFXJWElNWBjPZMbhg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6.6.0"
+      }
+    },
+    "node_modules/cssfilter": {
+      "version": "0.0.10",
+      "resolved": "https://registry.npmjs.org/cssfilter/-/cssfilter-0.0.10.tgz",
+      "integrity": "sha512-FAaLDaplstoRsDR8XGYH51znUN0UY7nMc6Z9/fvE8EXGwvJE9hu7W2vHwx1+bd6gCYnln9nLbzxFTrcO9YQDZw==",
+      "license": "MIT"
+    },
+    "node_modules/debug": {
+      "version": "4.4.3",
+      "resolved": "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz",
+      "integrity": "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==",
+      "license": "MIT",
+      "dependencies": {
+        "ms": "^2.1.3"
+      },
+      "engines": {
+        "node": ">=6.0"
+      },
+      "peerDependenciesMeta": {
+        "supports-color": {
+          "optional": true
+        }
+      }
+    },
+    "node_modules/depd": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/depd/-/depd-2.0.0.tgz",
+      "integrity": "sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/dotenv": {
+      "version": "17.2.3",
+      "resolved": "https://registry.npmjs.org/dotenv/-/dotenv-17.2.3.tgz",
+      "integrity": "sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==",
+      "license": "BSD-2-Clause",
+      "engines": {
+        "node": ">=12"
+      },
+      "funding": {
+        "url": "https://dotenvx.com"
+      }
+    },
+    "node_modules/dunder-proto": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/dunder-proto/-/dunder-proto-1.0.1.tgz",
+      "integrity": "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bind-apply-helpers": "^1.0.1",
+        "es-errors": "^1.3.0",
+        "gopd": "^1.2.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/ee-first": {
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/ee-first/-/ee-first-1.1.1.tgz",
+      "integrity": "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==",
+      "license": "MIT"
+    },
+    "node_modules/ejs": {
+      "version": "3.1.10",
+      "resolved": "https://registry.npmjs.org/ejs/-/ejs-3.1.10.tgz",
+      "integrity": "sha512-UeJmFfOrAQS8OJWPZ4qtgHyWExa088/MtK5UEyoJGFH67cDEXkZSviOiKRCZ4Xij0zxI3JECgYs3oKx+AizQBA==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "jake": "^10.8.5"
+      },
+      "bin": {
+        "ejs": "bin/cli.js"
+      },
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    "node_modules/encodeurl": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/encodeurl/-/encodeurl-2.0.0.tgz",
+      "integrity": "sha512-Q0n9HRi4m6JuGIV1eFlmvJB7ZEVxu93IrMyiMsGC0lrMJMWzRgx6WGquyfQgZVb31vhGgXnfmPNNXmxnOkRBrg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/es-define-property": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/es-define-property/-/es-define-property-1.0.1.tgz",
+      "integrity": "sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/es-errors": {
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/es-errors/-/es-errors-1.3.0.tgz",
+      "integrity": "sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/es-object-atoms": {
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/es-object-atoms/-/es-object-atoms-1.1.1.tgz",
+      "integrity": "sha512-FGgH2h8zKNim9ljj7dankFPcICIK9Cp5bm+c2gQSYePhpaG5+esrLODihIorn+Pe6FGJzWhXQotPv73jTaldXA==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/escape-html": {
+      "version": "1.0.3",
+      "resolved": "https://registry.npmjs.org/escape-html/-/escape-html-1.0.3.tgz",
+      "integrity": "sha512-NiSupZ4OeuGwr68lGIeym/ksIZMJodUGOSCZ/FSnTxcrekbvqrgdUxlJOMpijaKZVjAJrWrGs/6Jy8OMuyj9ow==",
+      "license": "MIT"
+    },
+    "node_modules/etag": {
+      "version": "1.8.1",
+      "resolved": "https://registry.npmjs.org/etag/-/etag-1.8.1.tgz",
+      "integrity": "sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/express": {
+      "version": "5.1.0",
+      "resolved": "https://registry.npmjs.org/express/-/express-5.1.0.tgz",
+      "integrity": "sha512-DT9ck5YIRU+8GYzzU5kT3eHGA5iL+1Zd0EutOmTE9Dtk+Tvuzd23VBU+ec7HPNSTxXYO55gPV/hq4pSBJDjFpA==",
+      "license": "MIT",
+      "dependencies": {
+        "accepts": "^2.0.0",
+        "body-parser": "^2.2.0",
+        "content-disposition": "^1.0.0",
+        "content-type": "^1.0.5",
+        "cookie": "^0.7.1",
+        "cookie-signature": "^1.2.1",
+        "debug": "^4.4.0",
+        "encodeurl": "^2.0.0",
+        "escape-html": "^1.0.3",
+        "etag": "^1.8.1",
+        "finalhandler": "^2.1.0",
+        "fresh": "^2.0.0",
+        "http-errors": "^2.0.0",
+        "merge-descriptors": "^2.0.0",
+        "mime-types": "^3.0.0",
+        "on-finished": "^2.4.1",
+        "once": "^1.4.0",
+        "parseurl": "^1.3.3",
+        "proxy-addr": "^2.0.7",
+        "qs": "^6.14.0",
+        "range-parser": "^1.2.1",
+        "router": "^2.2.0",
+        "send": "^1.1.0",
+        "serve-static": "^2.2.0",
+        "statuses": "^2.0.1",
+        "type-is": "^2.0.1",
+        "vary": "^1.1.2"
+      },
+      "engines": {
+        "node": ">= 18"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/express"
+      }
+    },
+    "node_modules/express-session": {
+      "version": "1.18.2",
+      "resolved": "https://registry.npmjs.org/express-session/-/express-session-1.18.2.tgz",
+      "integrity": "sha512-SZjssGQC7TzTs9rpPDuUrR23GNZ9+2+IkA/+IJWmvQilTr5OSliEHGF+D9scbIpdC6yGtTI0/VhaHoVes2AN/A==",
+      "license": "MIT",
+      "dependencies": {
+        "cookie": "0.7.2",
+        "cookie-signature": "1.0.7",
+        "debug": "2.6.9",
+        "depd": "~2.0.0",
+        "on-headers": "~1.1.0",
+        "parseurl": "~1.3.3",
+        "safe-buffer": "5.2.1",
+        "uid-safe": "~2.1.5"
+      },
+      "engines": {
+        "node": ">= 0.8.0"
+      }
+    },
+    "node_modules/express-session/node_modules/cookie-signature": {
+      "version": "1.0.7",
+      "resolved": "https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.7.tgz",
+      "integrity": "sha512-NXdYc3dLr47pBkpUCHtKSwIOQXLVn8dZEuywboCOJY/osA0wFSLlSawr3KN8qXJEyX66FcONTH8EIlVuK0yyFA==",
+      "license": "MIT"
+    },
+    "node_modules/express-session/node_modules/debug": {
+      "version": "2.6.9",
+      "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
+      "integrity": "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==",
+      "license": "MIT",
+      "dependencies": {
+        "ms": "2.0.0"
+      }
+    },
+    "node_modules/express-session/node_modules/ms": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz",
+      "integrity": "sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==",
+      "license": "MIT"
+    },
+    "node_modules/express-validator": {
+      "version": "7.3.0",
+      "resolved": "https://registry.npmjs.org/express-validator/-/express-validator-7.3.0.tgz",
+      "integrity": "sha512-ujK2BX5JUun5NR4JuBo83YSXoDDIpoGz3QxgHTzQcHFevkKnwV1in4K7YNuuXQ1W3a2ObXB/P4OTnTZpUyGWiw==",
+      "license": "MIT",
+      "dependencies": {
+        "lodash": "^4.17.21",
+        "validator": "~13.15.15"
+      },
+      "engines": {
+        "node": ">= 8.0.0"
+      }
+    },
+    "node_modules/filelist": {
+      "version": "1.0.4",
+      "resolved": "https://registry.npmjs.org/filelist/-/filelist-1.0.4.tgz",
+      "integrity": "sha512-w1cEuf3S+DrLCQL7ET6kz+gmlJdbq9J7yXCSjK/OZCPA+qEN1WyF4ZAf0YYJa4/shHJra2t/d/r8SV4Ji+x+8Q==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "minimatch": "^5.0.1"
+      }
+    },
+    "node_modules/finalhandler": {
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/finalhandler/-/finalhandler-2.1.0.tgz",
+      "integrity": "sha512-/t88Ty3d5JWQbWYgaOGCCYfXRwV1+be02WqYYlL6h0lEiUAMPM8o8qKGO01YIkOHzka2up08wvgYD0mDiI+q3Q==",
+      "license": "MIT",
+      "dependencies": {
+        "debug": "^4.4.0",
+        "encodeurl": "^2.0.0",
+        "escape-html": "^1.0.3",
+        "on-finished": "^2.4.1",
+        "parseurl": "^1.3.3",
+        "statuses": "^2.0.1"
+      },
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/forwarded": {
+      "version": "0.2.0",
+      "resolved": "https://registry.npmjs.org/forwarded/-/forwarded-0.2.0.tgz",
+      "integrity": "sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/fresh": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/fresh/-/fresh-2.0.0.tgz",
+      "integrity": "sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/function-bind": {
+      "version": "1.1.2",
+      "resolved": "https://registry.npmjs.org/function-bind/-/function-bind-1.1.2.tgz",
+      "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==",
+      "license": "MIT",
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/get-intrinsic": {
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/get-intrinsic/-/get-intrinsic-1.3.0.tgz",
+      "integrity": "sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bind-apply-helpers": "^1.0.2",
+        "es-define-property": "^1.0.1",
+        "es-errors": "^1.3.0",
+        "es-object-atoms": "^1.1.1",
+        "function-bind": "^1.1.2",
+        "get-proto": "^1.0.1",
+        "gopd": "^1.2.0",
+        "has-symbols": "^1.1.0",
+        "hasown": "^2.0.2",
+        "math-intrinsics": "^1.1.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/get-proto": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/get-proto/-/get-proto-1.0.1.tgz",
+      "integrity": "sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==",
+      "license": "MIT",
+      "dependencies": {
+        "dunder-proto": "^1.0.1",
+        "es-object-atoms": "^1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/gopd": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/gopd/-/gopd-1.2.0.tgz",
+      "integrity": "sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/has-symbols": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/has-symbols/-/has-symbols-1.1.0.tgz",
+      "integrity": "sha512-1cDNdwJ2Jaohmb3sg4OmKaMBwuC48sYni5HUw2DvsC8LjGTLK9h+eb1X6RyuOHe4hT0ULCW68iomhjUoKUqlPQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/hasown": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/hasown/-/hasown-2.0.2.tgz",
+      "integrity": "sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==",
+      "license": "MIT",
+      "dependencies": {
+        "function-bind": "^1.1.2"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/helmet": {
+      "version": "8.1.0",
+      "resolved": "https://registry.npmjs.org/helmet/-/helmet-8.1.0.tgz",
+      "integrity": "sha512-jOiHyAZsmnr8LqoPGmCjYAaiuWwjAPLgY8ZX2XrmHawt99/u1y6RgrZMTeoPfpUbV96HOalYgz1qzkRbw54Pmg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=18.0.0"
+      }
+    },
+    "node_modules/http-errors": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/http-errors/-/http-errors-2.0.0.tgz",
+      "integrity": "sha512-FtwrG/euBzaEjYeRqOgly7G0qviiXoJWnvEH2Z1plBdXgbyjv34pHTSb9zoeHMyDy33+DWy5Wt9Wo+TURtOYSQ==",
+      "license": "MIT",
+      "dependencies": {
+        "depd": "2.0.0",
+        "inherits": "2.0.4",
+        "setprototypeof": "1.2.0",
+        "statuses": "2.0.1",
+        "toidentifier": "1.0.1"
+      },
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/http-errors/node_modules/statuses": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/statuses/-/statuses-2.0.1.tgz",
+      "integrity": "sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/iconv-lite": {
+      "version": "0.6.3",
+      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.6.3.tgz",
+      "integrity": "sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==",
+      "license": "MIT",
+      "dependencies": {
+        "safer-buffer": ">= 2.1.2 < 3.0.0"
+      },
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    "node_modules/inherits": {
+      "version": "2.0.4",
+      "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz",
+      "integrity": "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==",
+      "license": "ISC"
+    },
+    "node_modules/ipaddr.js": {
+      "version": "1.9.1",
+      "resolved": "https://registry.npmjs.org/ipaddr.js/-/ipaddr.js-1.9.1.tgz",
+      "integrity": "sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.10"
+      }
+    },
+    "node_modules/is-promise": {
+      "version": "4.0.0",
+      "resolved": "https://registry.npmjs.org/is-promise/-/is-promise-4.0.0.tgz",
+      "integrity": "sha512-hvpoI6korhJMnej285dSg6nu1+e6uxs7zG3BYAm5byqDsgJNWwxzM6z6iZiAgQR4TJ30JmBTOwqZUw3WlyH3AQ==",
+      "license": "MIT"
+    },
+    "node_modules/jake": {
+      "version": "10.9.4",
+      "resolved": "https://registry.npmjs.org/jake/-/jake-10.9.4.tgz",
+      "integrity": "sha512-wpHYzhxiVQL+IV05BLE2Xn34zW1S223hvjtqk0+gsPrwd/8JNLXJgZZM/iPFsYc1xyphF+6M6EvdE5E9MBGkDA==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "async": "^3.2.6",
+        "filelist": "^1.0.4",
+        "picocolors": "^1.1.1"
+      },
+      "bin": {
+        "jake": "bin/cli.js"
+      },
+      "engines": {
+        "node": ">=10"
+      }
+    },
+    "node_modules/jquery": {
+      "version": "3.7.1",
+      "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.7.1.tgz",
+      "integrity": "sha512-m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==",
+      "license": "MIT"
+    },
+    "node_modules/jquery-validation": {
+      "version": "1.21.0",
+      "resolved": "https://registry.npmjs.org/jquery-validation/-/jquery-validation-1.21.0.tgz",
+      "integrity": "sha512-xNot0rlUIgu7duMcQ5qb6MGkGL/Z1PQaRJQoZAURW9+a/2PGOUxY36o/WyNeP2T9R6jvWB8Z9lUVvvQWI/Zs5w==",
+      "license": "MIT",
+      "peerDependencies": {
+        "jquery": "^1.7 || ^2.0 || ^3.1"
+      }
+    },
+    "node_modules/kareem": {
+      "version": "2.6.3",
+      "resolved": "https://registry.npmjs.org/kareem/-/kareem-2.6.3.tgz",
+      "integrity": "sha512-C3iHfuGUXK2u8/ipq9LfjFfXFxAZMQJJq7vLS45r3D9Y2xQ/m4S8zaR4zMLFWh9AsNPXmcFfUDhTEO8UIC/V6Q==",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=12.0.0"
+      }
+    },
+    "node_modules/kruptein": {
+      "version": "3.0.8",
+      "resolved": "https://registry.npmjs.org/kruptein/-/kruptein-3.0.8.tgz",
+      "integrity": "sha512-0CyalFA0Cjp3jnziMp0u1uLZW2/ouhQ0mEMfYlroBXNe86na1RwAuwBcdRAegeWZNMfQy/G5fN47g/Axjtqrfw==",
+      "license": "MIT",
+      "dependencies": {
+        "asn1.js": "^5.4.1"
+      },
+      "engines": {
+        "node": ">8"
+      }
+    },
+    "node_modules/lodash": {
+      "version": "4.17.21",
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
+      "integrity": "sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==",
+      "license": "MIT"
+    },
+    "node_modules/math-intrinsics": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/math-intrinsics/-/math-intrinsics-1.1.0.tgz",
+      "integrity": "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      }
+    },
+    "node_modules/media-typer": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/media-typer/-/media-typer-1.1.0.tgz",
+      "integrity": "sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/memory-pager": {
+      "version": "1.5.0",
+      "resolved": "https://registry.npmjs.org/memory-pager/-/memory-pager-1.5.0.tgz",
+      "integrity": "sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg==",
+      "license": "MIT"
+    },
+    "node_modules/merge-descriptors": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/merge-descriptors/-/merge-descriptors-2.0.0.tgz",
+      "integrity": "sha512-Snk314V5ayFLhp3fkUREub6WtjBfPdCPY1Ln8/8munuLuiYhsABgBVWsozAG+MWMbVEvcdcpbi9R7ww22l9Q3g==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=18"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/sindresorhus"
+      }
+    },
+    "node_modules/mime-db": {
+      "version": "1.54.0",
+      "resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.54.0.tgz",
+      "integrity": "sha512-aU5EJuIN2WDemCcAp2vFBfp/m4EAhWJnUNSSw0ixs7/kXbd6Pg64EmwJkNdFhB8aWt1sH2CTXrLxo/iAGV3oPQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/mime-types": {
+      "version": "3.0.1",
+      "resolved": "https://registry.npmjs.org/mime-types/-/mime-types-3.0.1.tgz",
+      "integrity": "sha512-xRc4oEhT6eaBpU1XF7AjpOFD+xQmXNB5OVKwp4tqCuBpHLS/ZbBDrc07mYTDqVMg6PfxUjjNp85O6Cd2Z/5HWA==",
+      "license": "MIT",
+      "dependencies": {
+        "mime-db": "^1.54.0"
+      },
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/minimalistic-assert": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/minimalistic-assert/-/minimalistic-assert-1.0.1.tgz",
+      "integrity": "sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==",
+      "license": "ISC"
+    },
+    "node_modules/minimatch": {
+      "version": "5.1.6",
+      "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-5.1.6.tgz",
+      "integrity": "sha512-lKwV/1brpG6mBUFHtb7NUmtABCb2WZZmm2wNiOA5hAb8VdCS4B3dtMWyvcoViccwAW/COERjXLt0zP1zXUN26g==",
+      "license": "ISC",
+      "dependencies": {
+        "brace-expansion": "^2.0.1"
+      },
+      "engines": {
+        "node": ">=10"
+      }
+    },
+    "node_modules/mongodb": {
+      "version": "6.18.0",
+      "resolved": "https://registry.npmjs.org/mongodb/-/mongodb-6.18.0.tgz",
+      "integrity": "sha512-fO5ttN9VC8P0F5fqtQmclAkgXZxbIkYRTUi1j8JO6IYwvamkhtYDilJr35jOPELR49zqCJgXZWwCtW7B+TM8vQ==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "@mongodb-js/saslprep": "^1.1.9",
+        "bson": "^6.10.4",
+        "mongodb-connection-string-url": "^3.0.0"
+      },
+      "engines": {
+        "node": ">=16.20.1"
+      },
+      "peerDependencies": {
+        "@aws-sdk/credential-providers": "^3.188.0",
+        "@mongodb-js/zstd": "^1.1.0 || ^2.0.0",
+        "gcp-metadata": "^5.2.0",
+        "kerberos": "^2.0.1",
+        "mongodb-client-encryption": ">=6.0.0 <7",
+        "snappy": "^7.2.2",
+        "socks": "^2.7.1"
+      },
+      "peerDependenciesMeta": {
+        "@aws-sdk/credential-providers": {
+          "optional": true
+        },
+        "@mongodb-js/zstd": {
+          "optional": true
+        },
+        "gcp-metadata": {
+          "optional": true
+        },
+        "kerberos": {
+          "optional": true
+        },
+        "mongodb-client-encryption": {
+          "optional": true
+        },
+        "snappy": {
+          "optional": true
+        },
+        "socks": {
+          "optional": true
+        }
+      }
+    },
+    "node_modules/mongodb-connection-string-url": {
+      "version": "3.0.2",
+      "resolved": "https://registry.npmjs.org/mongodb-connection-string-url/-/mongodb-connection-string-url-3.0.2.tgz",
+      "integrity": "sha512-rMO7CGo/9BFwyZABcKAWL8UJwH/Kc2x0g72uhDWzG48URRax5TCIcJ7Rc3RZqffZzO/Gwff/jyKwCU9TN8gehA==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "@types/whatwg-url": "^11.0.2",
+        "whatwg-url": "^14.1.0 || ^13.0.0"
+      }
+    },
+    "node_modules/mongoose": {
+      "version": "8.18.3",
+      "resolved": "https://registry.npmjs.org/mongoose/-/mongoose-8.18.3.tgz",
+      "integrity": "sha512-5kuHl9IYD19xItCBKl0gtp7WKRH0X9Vm95pSRUml/Qv6uYAqDvGvKqEufluIBNextU22nB7w67N+UTmQxDA3RQ==",
+      "license": "MIT",
+      "dependencies": {
+        "bson": "^6.10.4",
+        "kareem": "2.6.3",
+        "mongodb": "~6.18.0",
+        "mpath": "0.9.0",
+        "mquery": "5.0.0",
+        "ms": "2.1.3",
+        "sift": "17.1.3"
+      },
+      "engines": {
+        "node": ">=16.20.1"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/mongoose"
+      }
+    },
+    "node_modules/mpath": {
+      "version": "0.9.0",
+      "resolved": "https://registry.npmjs.org/mpath/-/mpath-0.9.0.tgz",
+      "integrity": "sha512-ikJRQTk8hw5DEoFVxHG1Gn9T/xcjtdnOKIU1JTmGjZZlg9LST2mBLmcX3/ICIbgJydT2GOc15RnNy5mHmzfSew==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=4.0.0"
+      }
+    },
+    "node_modules/mquery": {
+      "version": "5.0.0",
+      "resolved": "https://registry.npmjs.org/mquery/-/mquery-5.0.0.tgz",
+      "integrity": "sha512-iQMncpmEK8R8ncT8HJGsGc9Dsp8xcgYMVSbs5jgnm1lFHTZqMJTUWTDx1LBO8+mK3tPNZWFLBghQEIOULSTHZg==",
+      "license": "MIT",
+      "dependencies": {
+        "debug": "4.x"
+      },
+      "engines": {
+        "node": ">=14.0.0"
+      }
+    },
+    "node_modules/ms": {
+      "version": "2.1.3",
+      "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+      "integrity": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==",
+      "license": "MIT"
+    },
+    "node_modules/negotiator": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/negotiator/-/negotiator-1.0.0.tgz",
+      "integrity": "sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/object-inspect": {
+      "version": "1.13.4",
+      "resolved": "https://registry.npmjs.org/object-inspect/-/object-inspect-1.13.4.tgz",
+      "integrity": "sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/on-finished": {
+      "version": "2.4.1",
+      "resolved": "https://registry.npmjs.org/on-finished/-/on-finished-2.4.1.tgz",
+      "integrity": "sha512-oVlzkg3ENAhCk2zdv7IJwd/QUD4z2RxRwpkcGY8psCVcCYZNq4wYnVWALHM+brtuJjePWiYF/ClmuDr8Ch5+kg==",
+      "license": "MIT",
+      "dependencies": {
+        "ee-first": "1.1.1"
+      },
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/on-headers": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/on-headers/-/on-headers-1.1.0.tgz",
+      "integrity": "sha512-737ZY3yNnXy37FHkQxPzt4UZ2UWPWiCZWLvFZ4fu5cueciegX0zGPnrlY6bwRg4FdQOe9YU8MkmJwGhoMybl8A==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/once": {
+      "version": "1.4.0",
+      "resolved": "https://registry.npmjs.org/once/-/once-1.4.0.tgz",
+      "integrity": "sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==",
+      "license": "ISC",
+      "dependencies": {
+        "wrappy": "1"
+      }
+    },
+    "node_modules/parseurl": {
+      "version": "1.3.3",
+      "resolved": "https://registry.npmjs.org/parseurl/-/parseurl-1.3.3.tgz",
+      "integrity": "sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/path-to-regexp": {
+      "version": "8.3.0",
+      "resolved": "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-8.3.0.tgz",
+      "integrity": "sha512-7jdwVIRtsP8MYpdXSwOS0YdD0Du+qOoF/AEPIt88PcCFrZCzx41oxku1jD88hZBwbNUIEfpqvuhjFaMAqMTWnA==",
+      "license": "MIT",
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/express"
+      }
+    },
+    "node_modules/picocolors": {
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
+      "integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==",
+      "license": "ISC"
+    },
+    "node_modules/proxy-addr": {
+      "version": "2.0.7",
+      "resolved": "https://registry.npmjs.org/proxy-addr/-/proxy-addr-2.0.7.tgz",
+      "integrity": "sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==",
+      "license": "MIT",
+      "dependencies": {
+        "forwarded": "0.2.0",
+        "ipaddr.js": "1.9.1"
+      },
+      "engines": {
+        "node": ">= 0.10"
+      }
+    },
+    "node_modules/punycode": {
+      "version": "2.3.1",
+      "resolved": "https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz",
+      "integrity": "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=6"
+      }
+    },
+    "node_modules/qs": {
+      "version": "6.14.0",
+      "resolved": "https://registry.npmjs.org/qs/-/qs-6.14.0.tgz",
+      "integrity": "sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==",
+      "license": "BSD-3-Clause",
+      "dependencies": {
+        "side-channel": "^1.1.0"
+      },
+      "engines": {
+        "node": ">=0.6"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/random-bytes": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/random-bytes/-/random-bytes-1.0.0.tgz",
+      "integrity": "sha512-iv7LhNVO047HzYR3InF6pUcUsPQiHTM1Qal51DcGSuZFBil1aBBWG5eHPNek7bvILMaYJ/8RU1e8w1AMdHmLQQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/range-parser": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/range-parser/-/range-parser-1.2.1.tgz",
+      "integrity": "sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/raw-body": {
+      "version": "3.0.1",
+      "resolved": "https://registry.npmjs.org/raw-body/-/raw-body-3.0.1.tgz",
+      "integrity": "sha512-9G8cA+tuMS75+6G/TzW8OtLzmBDMo8p1JRxN5AZ+LAp8uxGA8V8GZm4GQ4/N5QNQEnLmg6SS7wyuSmbKepiKqA==",
+      "license": "MIT",
+      "dependencies": {
+        "bytes": "3.1.2",
+        "http-errors": "2.0.0",
+        "iconv-lite": "0.7.0",
+        "unpipe": "1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.10"
+      }
+    },
+    "node_modules/raw-body/node_modules/iconv-lite": {
+      "version": "0.7.0",
+      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.7.0.tgz",
+      "integrity": "sha512-cf6L2Ds3h57VVmkZe+Pn+5APsT7FpqJtEhhieDCvrE2MK5Qk9MyffgQyuxQTm6BChfeZNtcOLHp9IcWRVcIcBQ==",
+      "license": "MIT",
+      "dependencies": {
+        "safer-buffer": ">= 2.1.2 < 3.0.0"
+      },
+      "engines": {
+        "node": ">=0.10.0"
+      },
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/express"
+      }
+    },
+    "node_modules/router": {
+      "version": "2.2.0",
+      "resolved": "https://registry.npmjs.org/router/-/router-2.2.0.tgz",
+      "integrity": "sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==",
+      "license": "MIT",
+      "dependencies": {
+        "debug": "^4.4.0",
+        "depd": "^2.0.0",
+        "is-promise": "^4.0.0",
+        "parseurl": "^1.3.3",
+        "path-to-regexp": "^8.0.0"
+      },
+      "engines": {
+        "node": ">= 18"
+      }
+    },
+    "node_modules/safe-buffer": {
+      "version": "5.2.1",
+      "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.2.1.tgz",
+      "integrity": "sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==",
+      "funding": [
+        {
+          "type": "github",
+          "url": "https://github.com/sponsors/feross"
+        },
+        {
+          "type": "patreon",
+          "url": "https://www.patreon.com/feross"
+        },
+        {
+          "type": "consulting",
+          "url": "https://feross.org/support"
+        }
+      ],
+      "license": "MIT"
+    },
+    "node_modules/safer-buffer": {
+      "version": "2.1.2",
+      "resolved": "https://registry.npmjs.org/safer-buffer/-/safer-buffer-2.1.2.tgz",
+      "integrity": "sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==",
+      "license": "MIT"
+    },
+    "node_modules/send": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/send/-/send-1.2.0.tgz",
+      "integrity": "sha512-uaW0WwXKpL9blXE2o0bRhoL2EGXIrZxQ2ZQ4mgcfoBxdFmQold+qWsD2jLrfZ0trjKL6vOw0j//eAwcALFjKSw==",
+      "license": "MIT",
+      "dependencies": {
+        "debug": "^4.3.5",
+        "encodeurl": "^2.0.0",
+        "escape-html": "^1.0.3",
+        "etag": "^1.8.1",
+        "fresh": "^2.0.0",
+        "http-errors": "^2.0.0",
+        "mime-types": "^3.0.1",
+        "ms": "^2.1.3",
+        "on-finished": "^2.4.1",
+        "range-parser": "^1.2.1",
+        "statuses": "^2.0.1"
+      },
+      "engines": {
+        "node": ">= 18"
+      }
+    },
+    "node_modules/serve-static": {
+      "version": "2.2.0",
+      "resolved": "https://registry.npmjs.org/serve-static/-/serve-static-2.2.0.tgz",
+      "integrity": "sha512-61g9pCh0Vnh7IutZjtLGGpTA355+OPn2TyDv/6ivP2h/AdAVX9azsoxmg2/M6nZeQZNYBEwIcsne1mJd9oQItQ==",
+      "license": "MIT",
+      "dependencies": {
+        "encodeurl": "^2.0.0",
+        "escape-html": "^1.0.3",
+        "parseurl": "^1.3.3",
+        "send": "^1.2.0"
+      },
+      "engines": {
+        "node": ">= 18"
+      }
+    },
+    "node_modules/setprototypeof": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.2.0.tgz",
+      "integrity": "sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==",
+      "license": "ISC"
+    },
+    "node_modules/side-channel": {
+      "version": "1.1.0",
+      "resolved": "https://registry.npmjs.org/side-channel/-/side-channel-1.1.0.tgz",
+      "integrity": "sha512-ZX99e6tRweoUXqR+VBrslhda51Nh5MTQwou5tnUDgbtyM0dBgmhEDtWGP/xbKn6hqfPRHujUNwz5fy/wbbhnpw==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0",
+        "object-inspect": "^1.13.3",
+        "side-channel-list": "^1.0.0",
+        "side-channel-map": "^1.0.1",
+        "side-channel-weakmap": "^1.0.2"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/side-channel-list": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/side-channel-list/-/side-channel-list-1.0.0.tgz",
+      "integrity": "sha512-FCLHtRD/gnpCiCHEiJLOwdmFP+wzCmDEkc9y7NsYxeF4u7Btsn1ZuwgwJGxImImHicJArLP4R0yX4c2KCrMrTA==",
+      "license": "MIT",
+      "dependencies": {
+        "es-errors": "^1.3.0",
+        "object-inspect": "^1.13.3"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/side-channel-map": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/side-channel-map/-/side-channel-map-1.0.1.tgz",
+      "integrity": "sha512-VCjCNfgMsby3tTdo02nbjtM/ewra6jPHmpThenkTYh8pG9ucZ/1P8So4u4FGBek/BjpOVsDCMoLA/iuBKIFXRA==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bound": "^1.0.2",
+        "es-errors": "^1.3.0",
+        "get-intrinsic": "^1.2.5",
+        "object-inspect": "^1.13.3"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/side-channel-weakmap": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/side-channel-weakmap/-/side-channel-weakmap-1.0.2.tgz",
+      "integrity": "sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A==",
+      "license": "MIT",
+      "dependencies": {
+        "call-bound": "^1.0.2",
+        "es-errors": "^1.3.0",
+        "get-intrinsic": "^1.2.5",
+        "object-inspect": "^1.13.3",
+        "side-channel-map": "^1.0.1"
+      },
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/sift": {
+      "version": "17.1.3",
+      "resolved": "https://registry.npmjs.org/sift/-/sift-17.1.3.tgz",
+      "integrity": "sha512-Rtlj66/b0ICeFzYTuNvX/EF1igRbbnGSvEyT79McoZa/DeGhMyC5pWKOEsZKnpkqtSeovd5FL/bjHWC3CIIvCQ==",
+      "license": "MIT"
+    },
+    "node_modules/sparse-bitfield": {
+      "version": "3.0.3",
+      "resolved": "https://registry.npmjs.org/sparse-bitfield/-/sparse-bitfield-3.0.3.tgz",
+      "integrity": "sha512-kvzhi7vqKTfkh0PZU+2D2PIllw2ymqJKujUcyPMd9Y75Nv4nPbGJZXNhxsgdQab2BmlDct1YnfQCguEvHr7VsQ==",
+      "license": "MIT",
+      "dependencies": {
+        "memory-pager": "^1.0.2"
+      }
+    },
+    "node_modules/statuses": {
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/statuses/-/statuses-2.0.2.tgz",
+      "integrity": "sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/toidentifier": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/toidentifier/-/toidentifier-1.0.1.tgz",
+      "integrity": "sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.6"
+      }
+    },
+    "node_modules/tr46": {
+      "version": "5.1.1",
+      "resolved": "https://registry.npmjs.org/tr46/-/tr46-5.1.1.tgz",
+      "integrity": "sha512-hdF5ZgjTqgAntKkklYw0R03MG2x/bSzTtkxmIRw/sTNV8YXsCJ1tfLAX23lhxhHJlEf3CRCOCGGWw3vI3GaSPw==",
+      "license": "MIT",
+      "dependencies": {
+        "punycode": "^2.3.1"
+      },
+      "engines": {
+        "node": ">=18"
+      }
+    },
+    "node_modules/type-is": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/type-is/-/type-is-2.0.1.tgz",
+      "integrity": "sha512-OZs6gsjF4vMp32qrCbiVSkrFmXtG/AZhY3t0iAMrMBiAZyV9oALtXO8hsrHbMXF9x6L3grlFuwW2oAz7cav+Gw==",
+      "license": "MIT",
+      "dependencies": {
+        "content-type": "^1.0.5",
+        "media-typer": "^1.1.0",
+        "mime-types": "^3.0.0"
+      },
+      "engines": {
+        "node": ">= 0.6"
+      }
+    },
+    "node_modules/uid-safe": {
+      "version": "2.1.5",
+      "resolved": "https://registry.npmjs.org/uid-safe/-/uid-safe-2.1.5.tgz",
+      "integrity": "sha512-KPHm4VL5dDXKz01UuEd88Df+KzynaohSL9fBh096KWAxSKZQDI2uBrVqtvRM4rwrIrRRKsdLNML/lnaaVSRioA==",
+      "license": "MIT",
+      "dependencies": {
+        "random-bytes": "~1.0.0"
+      },
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/unpipe": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/unpipe/-/unpipe-1.0.0.tgz",
+      "integrity": "sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/validator": {
+      "version": "13.15.23",
+      "resolved": "https://registry.npmjs.org/validator/-/validator-13.15.23.tgz",
+      "integrity": "sha512-4yoz1kEWqUjzi5zsPbAS/903QXSYp0UOtHsPpp7p9rHAw/W+dkInskAE386Fat3oKRROwO98d9ZB0G4cObgUyw==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.10"
+      }
+    },
+    "node_modules/vary": {
+      "version": "1.1.2",
+      "resolved": "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz",
+      "integrity": "sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.8"
+      }
+    },
+    "node_modules/webidl-conversions": {
+      "version": "7.0.0",
+      "resolved": "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-7.0.0.tgz",
+      "integrity": "sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==",
+      "license": "BSD-2-Clause",
+      "engines": {
+        "node": ">=12"
+      }
+    },
+    "node_modules/whatwg-url": {
+      "version": "14.2.0",
+      "resolved": "https://registry.npmjs.org/whatwg-url/-/whatwg-url-14.2.0.tgz",
+      "integrity": "sha512-De72GdQZzNTUBBChsXueQUnPKDkg/5A5zp7pFDuQAj5UFoENpiACU0wlCvzpAGnTkj++ihpKwKyYewn/XNUbKw==",
+      "license": "MIT",
+      "dependencies": {
+        "tr46": "^5.1.0",
+        "webidl-conversions": "^7.0.0"
+      },
+      "engines": {
+        "node": ">=18"
+      }
+    },
+    "node_modules/wrappy": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz",
+      "integrity": "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==",
+      "license": "ISC"
+    },
+    "node_modules/xss": {
+      "version": "1.0.15",
+      "resolved": "https://registry.npmjs.org/xss/-/xss-1.0.15.tgz",
+      "integrity": "sha512-FVdlVVC67WOIPvfOwhoMETV72f6GbW7aOabBC3WxN/oUdoEMDyLz4OgRv5/gck2ZeNqEQu+Tb0kloovXOfpYVg==",
+      "license": "MIT",
+      "dependencies": {
+        "commander": "^2.20.3",
+        "cssfilter": "0.0.10"
+      },
+      "bin": {
+        "xss": "bin/xss"
+      },
+      "engines": {
+        "node": ">= 0.10.0"
+      }
+    }
+  }
+}
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\package.json
+============================================================
+
+{
+  "name": "lexcorp-v2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "body-parser": "^2.2.0",
+    "connect-mongo": "^5.1.0",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "express-validator": "^7.3.0",
+    "helmet": "^8.1.0",
+    "jquery": "^3.7.1",
+    "jquery-validation": "^1.21.0",
+    "mongoose": "^8.18.3",
+    "xss": "^1.0.15"
+  }
+}
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\js\Heiran.txt
+============================================================
+
+twisty@lol-debian-linux:~$ sudo apt install wireguard qrencode ufw -y
+[sudo] contraseña para twisty: 
+Installing:                             
+  qrencode  ufw  wireguard
+
+Installing dependencies:
+  iptables  libip4tc2  libip6tc2  wireguard-tools
+
+Paquetes sugeridos:
+  firewalld  rsyslog  openresolv  | resolvconf
+
+Summary:
+  Upgrading: 0, Installing: 7, Removing: 0, Not Upgrading: 0
+  Download size: 703 kB
+  Space needed: 3 900 kB / 28.6 GB available
+
+Des:1 http://deb.debian.org/debian trixie/main amd64 libip4tc2 amd64 1.8.11-2 [20.0 kB]
+Des:2 http://deb.debian.org/debian trixie/main amd64 libip6tc2 amd64 1.8.11-2 [20.3 kB]
+Des:3 http://deb.debian.org/debian trixie/main amd64 iptables amd64 1.8.11-2 [361 kB]
+Des:4 http://deb.debian.org/debian trixie/main amd64 qrencode amd64 4.1.1-2 [41.9 kB]
+Des:5 http://deb.debian.org/debian trixie/main amd64 ufw all 0.36.2-9 [169 kB]
+Des:6 http://deb.debian.org/debian trixie/main amd64 wireguard-tools amd64 1.0.20210914-3 [84.9 kB]
+Des:7 http://deb.debian.org/debian trixie/main amd64 wireguard all 1.0.20210914-3 [5 804 B]
+Descargados 703 kB en 3s (242 kB/s)       
+Preconfigurando paquetes ...
+Seleccionando el paquete libip4tc2:amd64 previamente no seleccionado.
+(Leyendo la base de datos ... 153381 ficheros o directorios instalados actualmen
+te.)
+Preparando para desempaquetar .../0-libip4tc2_1.8.11-2_amd64.deb ...
+Desempaquetando libip4tc2:amd64 (1.8.11-2) ...
+Seleccionando el paquete libip6tc2:amd64 previamente no seleccionado.
+Preparando para desempaquetar .../1-libip6tc2_1.8.11-2_amd64.deb ...
+Desempaquetando libip6tc2:amd64 (1.8.11-2) ...
+Seleccionando el paquete iptables previamente no seleccionado.
+Preparando para desempaquetar .../2-iptables_1.8.11-2_amd64.deb ...
+Desempaquetando iptables (1.8.11-2) ...
+Seleccionando el paquete qrencode previamente no seleccionado.
+Preparando para desempaquetar .../3-qrencode_4.1.1-2_amd64.deb ...
+Desempaquetando qrencode (4.1.1-2) ...
+Seleccionando el paquete ufw previamente no seleccionado.
+Preparando para desempaquetar .../4-ufw_0.36.2-9_all.deb ...
+Desempaquetando ufw (0.36.2-9) ...
+Seleccionando el paquete wireguard-tools previamente no seleccionado.
+Preparando para desempaquetar .../5-wireguard-tools_1.0.20210914-3_amd64.deb ...
+Desempaquetando wireguard-tools (1.0.20210914-3) ...
+Seleccionando el paquete wireguard previamente no seleccionado.
+Preparando para desempaquetar .../6-wireguard_1.0.20210914-3_all.deb ...
+Desempaquetando wireguard (1.0.20210914-3) ...
+Configurando libip4tc2:amd64 (1.8.11-2) ...
+Configurando qrencode (4.1.1-2) ...
+Configurando libip6tc2:amd64 (1.8.11-2) ...
+Configurando wireguard-tools (1.0.20210914-3) ...
+wg-quick.target is a disabled or a static unit, not starting it.
+Configurando wireguard (1.0.20210914-3) ...
+Configurando iptables (1.8.11-2) ...
+update-alternatives: utilizando /usr/sbin/iptables-legacy para proveer /usr/sbin
+/iptables (iptables) en modo automático
+update-alternatives: utilizando /usr/sbin/ip6tables-legacy para proveer /usr/sbi
+n/ip6tables (ip6tables) en modo automático
+update-alternatives: utilizando /usr/sbin/iptables-nft para proveer /usr/sbin/ip
+tables (iptables) en modo automático
+update-alternatives: utilizando /usr/sbin/ip6tables-nft para proveer /usr/sbin/i
+p6tables (ip6tables) en modo automático
+update-alternatives: utilizando /usr/sbin/arptables-nft para proveer /usr/sbin/a
+rptables (arptables) en modo automático
+update-alternatives: utilizando /usr/sbin/ebtables-nft para proveer /usr/sbin/eb
+tables (ebtables) en modo automático
+Configurando ufw (0.36.2-9) ...
+Creating config file /etc/ufw/before.rules with new version
+Creating config file /etc/ufw/before6.rules with new version
+Creating config file /etc/ufw/after.rules with new version
+Creating config file /etc/ufw/after6.rules with new version
+Created symlink '/etc/systemd/system/multi-user.target.wants/ufw.service' → '/us
+r/lib/systemd/system/ufw.service'.
+Procesando disparadores para libc-bin (2.41-12) ...
+Procesando disparadores para man-db (2.13.1-1) ...
+twisty@lol-debian-linux:~$ cd ~
+wg genkey | tee privatekey | wg pubkey > publickey
+twisty@lol-debian-linux:~$ ls -l privatekey publickey
+-rw-rw-r-- 1 twisty twisty 45 oct 28 10:35 privatekey
+-rw-rw-r-- 1 twisty twisty 45 oct 28 10:35 publickey
+twisty@lol-debian-linux:~$ cat privatekey
+cat publickey
+oHt05R+Vbw2ZK76zKa6wXvRlISQYXx+RAXBVIlbG81k=
+Z265Mk3LZJM7FFgfqNn2zAKdMt3cEprCDdhITUjSuwY=
+twisty@lol-debian-linux:~$ sudo nano /etc/wireguard/wg0.conf
+twisty@lol-debian-linux:~$ sudo bash -c 'cat > /etc/wireguard/wg0.conf <<EOF
+[Interface]
+PrivateKey = oHt05R+Vbw2ZK76zKa6wXvRlISQYXx+RAXBVIlbG81k=
+Address = 10.0.0.1/24
+ListenPort = 51820
+
+[Peer]
+# ClientePrincipal
+PublicKey = CLIENTE_PUBLIC_KEY_AQUI
+AllowedIPs = 10.0.0.2/32
+EOF'
+twisty@lol-debian-linux:~$ sudo chmod 600 /etc/wireguard/wg0.conf
+twisty@lol-debian-linux:~$ cd ~
+wg genkey | tee cliente_privatekey | wg pubkey > cliente_publickey
+twisty@lol-debian-linux:~$ cat cliente_privatekey
+cat cliente_publickey
+eK7x2GEsmbGx1I/lwSPBzsgdydYrKmnpuq0MS1f/7Hc=
+24AlaQYEkg6oHA4AFNoInBQPhDpbSjXFjYohKEmKSk0=
+twisty@lol-debian-linux:~$ ^C
+twisty@lol-debian-linux:~$ sudo sed -i "s|CLIENTE_PUBLIC_KEY_AQUI|24AlaQYEkg6oHA4AFNoInBQPhDpbSjXFjYohKEmKSk0=|" /etc/wireguard/wg0.conf
+twisty@lol-debian-linux:~$ cat /etc/wireguard/wg0.conf
+cat: /etc/wireguard/wg0.conf: Permiso denegado
+twisty@lol-debian-linux:~$ sudo cat /etc/wireguard/wg0.conf
+[Interface]
+PrivateKey = oHt05R+Vbw2ZK76zKa6wXvRlISQYXx+RAXBVIlbG81k=
+Address = 10.0.0.1/24
+ListenPort = 51820
+
+[Peer]
+# ClientePrincipal
+PublicKey = 24AlaQYEkg6oHA4AFNoInBQPhDpbSjXFjYohKEmKSk0=
+AllowedIPs = 10.0.0.2/32
+twisty@lol-debian-linux:~$ ^C
+twisty@lol-debian-linux:~$ sudo ufw allow 51820/udp
+Rules updated
+Rules updated (v6)
+twisty@lol-debian-linux:~$ sudo ufw enable
+Firewall is active and enabled on system startup
+twisty@lol-debian-linux:~$ sudo ufw status
+Status: active
+
+To                         Action      From
+--                         ------      ----
+51820/udp                  ALLOW       Anywhere                  
+51820/udp (v6)             ALLOW       Anywhere (v6)             
+
+twisty@lol-debian-linux:~$ sudo systemctl start wg-quick@wg0
+twisty@lol-debian-linux:~$ sudo systemctl enable wg-quick@wg0
+Created symlink '/etc/systemd/system/multi-user.target.wants/wg-quick@wg0.service' → '/usr/lib/systemd/system/wg-quick@.service'.
+twisty@lol-debian-linux:~$ sudo wg show
+interface: wg0
+  public key: Z265Mk3LZJM7FFgfqNn2zAKdMt3cEprCDdhITUjSuwY=
+  private key: (hidden)
+  listening port: 51820
+
+peer: 24AlaQYEkg6oHA4AFNoInBQPhDpbSjXFjYohKEmKSk0=
+  allowed ips: 10.0.0.2/32
+twisty@lol-debian-linux:~$ 
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\admin.ejs
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Administración</title>
+  <link rel="stylesheet" href="https://twy9.github.io/Lexcorp/Lexcorp v2/public/admin.css">
+</head>
+<body>
+  <header>
+    <h1>Panel de Administración - Servicios</h1>
+    <nav>
+      <a href="/inicio">Inicio</a> |
+      <a href="/admin/usuarios">Gestionar Usuarios</a> |
+      <a href="/logout">Cerrar Sesión</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h2>Agregar un nuevo servicio</h2>
+      <form method="POST" action="/agregar_servicio">
+        <label>Nombre:</label>
+        <input type="text" name="nombre" required><br>
+        <label>Descripción:</label>
+        <textarea name="descripcion" rows="3" required></textarea><br>
+        <label>Costo:</label>
+        <input type="number" name="costo" required><br>
+        <button type="submit">Agregar</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Servicios actuales</h2>
+      <table>
+        <tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Costo</th><th>Acciones</th></tr>
+        <% servicios.forEach(s => { %>
+          <tr>
+            <td><%= s._id %></td>
+            <td><%= s.nombre %></td>
+            <td><%= s.descripcion %></td>
+            <td>$<%= s.costo %></td>
+            <td>
+              <form method="POST" action="/eliminar_servicio">
+                <input type="hidden" name="id" value="<%= s._id %>">
+                <button type="submit">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </table>
+    </section>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/js/validaciones.js"></script>
+</body>
+</html>
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\conexion.ejs
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Conexión a BD</title>
+</head>
+<body>
+  <h1>Estado de la conexión</h1>
+  <p><%= estado %></p>
+  <a href="/inicio">Volver al inicio</a>
+</body>
+</html>
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\inicio.ejs
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bufete de Abogados - Justicia y Confianza</title>
+
+  <!-- CSS LOCAL EN PUBLIC -->
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <header>
+    <h1>Bufete de Abogados "Justicia y Confianza"</h1>
+    <nav>
+      <a href="#inicio">Inicio</a> |
+      <a href="#mision">Misión</a> |
+      <a href="#vision">Visión</a> |
+      <a href="#servicios">Servicios</a> |
+      <a href="#contacto">Contacto</a>
+
+      <% if (rol === "admin") { %>
+        | <a href="/admin">Panel de Admin</a>
+      <% } %>
+
+      | <a href="/logout">Cerrar sesión</a>
+    </nav>
+  </header>
+
+  <section id="inicio"> 
+    <h2>Bienvenidos</h2>
+    <p>
+      Somos un bufete de abogados comprometido con la justicia y la defensa de los derechos
+      de nuestros clientes. Más de 20 años de experiencia nos respaldan.
+    </p>
+
+    <!-- IMAGEN SIN ESPACIOS Y CARGANDO CORRECTAMENTE -->
+    <!-- Fuerza HTTPS -->
+<img src="https://twy9.github.io/Lexcorp/Lexcorp%20v2/public/abogados.png"
+     alt="Equipo de abogados"
+     width="400">
+  </section>
+
+  <section id="mision">
+    <h2>Nuestra Misión</h2>
+    <p>
+      Brindar asesoría legal de calidad, defendiendo los intereses de nuestros clientes
+      con profesionalismo, ética y compromiso.
+    </p>
+  </section>
+
+  <section id="vision">
+    <h2>Nuestra Visión</h2>
+    <p>
+      Ser el bufete líder en la región, reconocido por nuestra excelencia profesional
+      y por lograr soluciones legales justas y efectivas.
+    </p>
+  </section>
+
+  <section id="servicios">
+    <h2>Servicios Legales</h2>
+
+    <ul>
+      <% if (servicios && servicios.length > 0) { %>
+        <% servicios.forEach(servicio => { %>
+          <li><%= servicio.nombre %> - $<%= servicio.costo %></li>
+        <% }) %>
+      <% } else { %>
+        <p>No se pudo acceder a la base de datos</p>
+      <% } %>
+    </ul>
+  </section>
+
+  <section id="contacto">
+    <h2>Contáctanos</h2>
+    <form>
+      <label for="nombre">Nombre:</label><br>
+      <input type="text" id="nombre" name="nombre" required><br><br>
+
+      <label for="correo">Correo:</label><br>
+      <input type="email" id="correo" name="correo" required><br><br>
+
+      <label for="mensaje">Mensaje:</label><br>
+      <textarea id="mensaje" name="mensaje" rows="5"></textarea><br><br>
+
+      <button type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <footer>
+    <p>Bufete de Abogados "Justicia y Confianza" 2025 | Todos los derechos reservados</p>
+
+    <a href="https://validator.w3.org/check?uri=referer">
+      <img src="https://www.w3.org/Icons/valid-html401" alt="¡HTML válido!" height="31" width="88">
+    </a>
+
+    <a href="https://jigsaw.w3.org/css-validator/validator?uri=referer">
+      <img src="https://jigsaw.w3.org/css-validator/images/vcss-blue" alt="¡CSS Válido!" height="31" width="88" />
+    </a>
+  </footer>
+
+  <!-- jQuery local o CDN -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- TU ARCHIVO LOCAL -->
+  <script src="/js/eventos.js"></script>
+
+</body>
+</html>
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\login.ejs
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="stylesheet" href="https://twy9.github.io/Lexcorp/Lexcorp v2/public/login.css"> 
+  <meta charset="UTF-8">
+  <title>login</title>
+</head>
+<body>
+  <header><h1>Justicia y confianza</h1></header>
+
+  <section id="login">
+    <form action="/login" method="POST">
+      <h2>Iniciar Sesión</h2>
+      <label>Usuario:</label>
+      <input type="text" name="usuario" required><br><br>
+      <label>Contraseña:</label>
+      <input type="password" name="contrasena" required><br><br>
+      <p>¿No tienes una cuenta? <a href="/registro">Regístrate</a></p>
+      <button type="submit">Ingresar</button>
+    </form>
+  </section>
+
+  <footer><p>Bufete de Abogados "Justicia y Confianza" 2025</p></footer>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="/js/validaciones.js"></script>
+
+</body>
+</html>
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\registro.ejs
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro</title>
+  <link rel="stylesheet" href="/registro.css">
+</head>
+<body>
+  <header><h1>Registro de Usuario</h1></header>
+
+  <section id="registro">
+    <form action="/registro" method="POST">
+      <h2>Crear cuenta</h2>
+
+      <label>Usuario:</label>
+      <input type="text" name="usuario" required>
+      <span id="usuario-status"></span>
+      <script src="/js/registro-check.js"></script><br><br>
+
+      <label>Nombre:</label>
+      <input type="text" name="nombre" required><br><br>
+
+      <label>Correo:</label>
+      <input type="email" name="correo" required><br><br>
+
+      <label>Contraseña:</label>
+      <input type="password" name="contrasena" required><br><br>
+
+      <p>¿Ya tienes una cuenta? <a href="/">Inicia sesión</a></p>
+      <button type="submit">Registrarse</button>
+    </form>
+  </section>
+
+  <footer><p>Bufete de Abogados "Justicia y Confianza" 2025</p></footer>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="/js/validaciones.js"></script>
+
+</body>
+</html>
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\admin\agregar_usuario.ejs
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Agregar Usuario</title>
+    <link rel="stylesheet" href="/admin_usuarios.css">
+</head>
+
+<body>
+
+<h1>Agregar Usuario</h1>
+
+<form action="/admin/usuarios/agregar" method="POST">
+    <label>Usuario:</label>
+    <input type="text" name="usuario" required>
+
+    <label>Contraseña:</label>
+    <input type="password" name="password" required>
+
+    <label>Rol:</label>
+    <select name="rol">
+        <option value="usuario">Usuario</option>
+        <option value="admin">Administrador</option>
+    </select>
+
+    <button type="submit">Guardar</button>
+</form>
+
+</body>
+</html>
+
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\admin\editar_usuario.ejs
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Usuario</title>
+    <link rel="stylesheet" href="/admin_usuarios.css">
+</head>
+
+<body>
+
+<h1>Editar Usuario</h1>
+
+<form action="/admin/usuarios/editar/<%= usuario._id %>" method="POST">
+    <label>Usuario:</label>
+    <input type="text" name="usuario" value="<%= usuario.usuario %>" required>
+
+    <label>Rol:</label>
+    <select name="rol">
+        <option value="usuario" <%= usuario.rol === "usuario" ? "selected" : "" %>>Usuario</option>
+        <option value="admin" <%= usuario.rol === "admin" ? "selected" : "" %>>Administrador</option>
+    </select>
+
+    <button type="submit">Guardar Cambios</button>
+</form>
+
+</body>
+</html>
+
+
+
+============================================================
+ARCHIVO: C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\admin\usuarios.ejs
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Usuarios</title>
+    <link rel="stylesheet" href="/admin_usuarios.css">
+</head>
+
+<body>
+
+<h1>Gestión de Usuarios</h1>
+
+<!-- 🔍 BUSCADOR AJAX -->
+<input type="text" id="buscador" placeholder="Buscar usuario..." style="margin-bottom: 15px; padding: 5px; width: 250px;">
+
+<div id="resultados"></div>
+
+<hr>
+
+<a href="/admin/usuarios/agregar">➕ Agregar Usuario</a>
+
+<table border="1" cellpadding="10">
+    <tr>
+        <th>Usuario</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+    </tr>
+
+    <% usuarios.forEach(u => { %>
+        <tr>
+            <td><%= u.usuario %></td>
+            <td><%= u.rol %></td>
+            <td>
+                <a href="/admin/usuarios/editar/<%= u._id %>">✏️ Editar</a> |
+                <a href="/admin/usuarios/eliminar/<%= u._id %>" onclick="return confirm('¿Eliminar usuario?')">🗑️ Eliminar</a>
+            </td>
+        </tr>
+    <% }) %>
+</table>
+
+<!-- SCRIPT AJAX PARA BUSCAR USUARIOS -->
+<script>
+document.getElementById("buscador").addEventListener("input", async (e) => {
+    const q = e.target.value;
+
+    const res = await fetch(`/admin/usuarios/buscar?q=${q}`);
+    const data = await res.json();
+
+    let html = "<ul>";
+    data.forEach(u => {
+        html += `<li>${u.usuario} (${u.rol})</li>`;
+    });
+    html += "</ul>";
+
+    document.getElementById("resultados").innerHTML = html;
+});
+</script>
+
+</body>
+</html>
+
+
+
+
+
+================================================================================
+RESUMEN: Se encontraron 25 archivos
+================================================================================
+ 1. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\concatenar.py
+ 2. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\create_admin.js
+ 3. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\server.js
+ 4. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\models\Servicio.js
+ 5. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\models\Usuario.js
+ 6. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\js\eventos.js
+ 7. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\js\registro-check.js
+ 8. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\js\validaciones.js
+ 9. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\routes\adminUsuarios.js
+10. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\admin.css
+11. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\admin_usuarios.css
+12. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\index.css
+13. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\login.css
+14. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\registro.css
+15. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\package-lock.json
+16. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\package.json
+17. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\public\js\Heiran.txt
+18. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\admin.ejs
+19. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\conexion.ejs
+20. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\inicio.ejs
+21. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\login.ejs
+22. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\registro.ejs
+23. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\admin\agregar_usuario.ejs
+24. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\admin\editar_usuario.ejs
+25. C:\Users\margu\Desktop\LexcorpRepo\Lexcorpv4.0\views\admin\usuarios.ejs
