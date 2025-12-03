@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bufete de Abogados - Justicia y Confianza</title>
+
+  <!-- ✅ CSS DESDE GITHUB -->
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <header>
+    <h1>Bufete de Abogados "Justicia y Confianza"</h1>
+    <nav>
+      <a href="#inicio">Inicio</a> |
+      <a href="#mision">Misión</a> |
+      <a href="#vision">Visión</a> |
+      <a href="#servicios">Servicios</a> |
+      <a href="#contacto">Contacto</a>
+
+      <% if (rol==="admin" ) { %>
+        | <a href="/admin">Panel de Admin</a>
+        <% } %>
+
+          | <a href="/logout">Cerrar sesión</a>
+    </nav>
+  </header>
+
+  <section id="inicio">
+    <h2>Bienvenidos</h2>
+    <p>
+      Somos un bufete de abogados comprometido con la justicia y la defensa de los derechos
+      de nuestros clientes. Más de 20 años de experiencia nos respaldan.
+    </p>
+
+    <!-- ✅ IMAGEN DESDE GITHUB -->
+    <img src="/github-image" alt="Equipo de abogados" width="400">
+  </section>
+
+  <section id="mision">
+    <h2>Nuestra Misión</h2>
+    <p>
+      Brindar asesoría legal de calidad, defendiendo los intereses de nuestros clientes
+      con profesionalismo, ética y compromiso.
+    </p>
+  </section>
+
+  <section id="vision">
+    <h2>Nuestra Visión</h2>
+    <p>
+      Ser el bufete líder en la región, reconocido por nuestra excelencia profesional
+      y por lograr soluciones legales justas y efectivas.
+    </p>
+  </section>
+
+  <section id="servicios">
+    <h2>Servicios Legales</h2>
+
+    <ul>
+      <% if (servicios && servicios.length> 0) { %>
+        <% servicios.forEach(servicio=> { %>
+          <li>
+            <%= servicio.nombre %> - $<%= servicio.costo %>
+          </li>
+          <% }) %>
+            <% } else { %>
+              <p>No se pudo acceder a la base de datos</p>
+              <% } %>
+    </ul>
+  </section>
+
+  <section id="contacto">
+    <h2>Contáctanos</h2>
+    <form>
+      <label for="nombre">Nombre:</label><br>
+      <input type="text" id="nombre" name="nombre" required><br><br>
+
+      <label for="correo">Correo:</label><br>
+      <input type="email" id="correo" name="correo" required><br><br>
+
+      <label for="mensaje">Mensaje:</label><br>
+      <textarea id="mensaje" name="mensaje" rows="5"></textarea><br><br>
+
+      <button type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <footer>
+    <p>Bufete de Abogados "Justicia y Confianza" 2025 | Todos los derechos reservados</p>
+
+    <a href="https://validator.w3.org/check?uri=referer">
+      <img src="https://www.w3.org/Icons/valid-html401" alt="¡HTML válido!" height="31" width="88">
+    </a>
+
+    <p>
+      <a href="https://jigsaw.w3.org/css-validator/#validate_by_input">
+        <img style="border:0;width:88px;height:31px" src="https://jigsaw.w3.org/css-validator/images/vcss-blue"
+          alt="¡CSS Válido!" />
+      </a>
+    </p>
+
+  </footer>
+
+  <!-- jQuery local o CDN -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- ✅ JS DESDE GITHUB -->
+  <script src="/js/eventos.js"></script>
+
+</body>
+
+</html>

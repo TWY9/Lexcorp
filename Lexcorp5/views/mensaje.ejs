@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><%= titulo %></title>
+
+  <style>
+    body {
+      background: #E0E1DD;
+      font-family: "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      width: 95%;
+      max-width: 450px;
+      text-align: center;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .btn-login {
+      display: inline-block;
+      background: #1B263B;
+      color: white;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1em;
+      margin-top: 20px;
+      transition: 0.3s;
+    }
+
+    .btn-login:hover {
+      background: #415a77;
+      text-decoration: none;
+      color: white;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1><%= success ? "🎉 Registro exitoso" : "❌ Error" %></h1>
+
+    <p><%= mensaje %></p>
+
+    <!-- Enlace simple como en tu página de registro -->
+    <a href="/" class="btn-login">← Volver al Login</a>
+
+    <% if (success) { %>
+      <p style="margin-top:15px; font-size:0.9em">Redirigiendo...</p>
+      <script>
+        setTimeout(() => { window.location.href = "/"; }, 2000);
+      </script>
+    <% } %>
+  </div>
+</body>
+</html>
